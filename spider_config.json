@@ -23,8 +23,8 @@
   },
   {
     "name": "wencai",
-    "module": "spiders.jinpai",
-    "class": "JinpaiSpider",
+    "module": "spiders.wencai",
+    "class": wencaiSpider",
     "urls": [
       "http://000.hfr1107.top/live/py/文才.py"
     ],

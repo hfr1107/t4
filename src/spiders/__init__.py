@@ -1,21 +1,27 @@
-from .jianpian import JianpianSpider
-from .jinpai import JinpaiSpider
+# ================================================================
+#  Spider 注册表
+#  添加新 spider: 
+#    1. 在 spiders/ 目录添加 xxx.py 文件
+#    2. 在下面 REGISTRY 添加一条
+#  删除 spider:
+#    1. 删除 .py 文件
+#    2. 删除 REGISTRY 中对应条目
+#  主程序 entry.py 永远不需要修改
+# ================================================================
 
-# 注册表：name -> Spider 类实例
-SPIDER_REGISTRY = {}
-
-
-def init_spiders():
-    global SPIDER_REGISTRY
-    SPIDER_REGISTRY = {
-        "jianpian": JianpianSpider(),
-        "jinpai": JinpaiSpider(),
-    }
-    return SPIDER_REGISTRY
-
-
-# URL -> name 映射（用于 ?url=xxx 方式查找）
-URL_TO_NAME = {
-    "http://000.hfr1107.top/live/py/荐片.py": "jianpian",
-    "http://000.hfr1107.top/live/py/金牌.py": "jinpai",
-}
+REGISTRY = [
+    {
+        "name": "jianpian",
+        "module": "spiders.jianpian",
+        "class": "JianpianSpider",
+        "urls": ["http://000.hfr1107.top/live/py/荐片.py"],
+        "aliases": ["荐片"]
+    },
+    {
+        "name": "jinpai",
+        "module": "spiders.jinpai",
+        "class": "JinpaiSpider",
+        "urls": ["http://000.hfr1107.top/live/py/金牌.py"],
+        "aliases": ["金牌"]
+    },
+]

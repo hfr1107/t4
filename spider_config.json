@@ -3,14 +3,33 @@
     "name": "jianpian",
     "module": "spiders.jianpian",
     "class": "JianpianSpider",
-    "urls": ["http://000.hfr1107.top/live/py/荐片.py"],
-    "aliases": ["荐片"]
+    "urls": [
+      "http://000.hfr1107.top/live/py/荐片.py"
+    ],
+    "aliases": [
+      "荐片"
+    ]
   },
   {
     "name": "jinpai",
     "module": "spiders.jinpai",
     "class": "JinpaiSpider",
-    "urls": ["http://000.hfr1107.top/live/py/金牌.py"],
-    "aliases": ["金牌"]
+    "urls": [
+      "http://000.hfr1107.top/live/py/金牌.py"
+    ],
+    "aliases": [
+      "金牌"
+    ]
+  },
+  {
+    "name": "wencai",
+    "module": "spiders.jinpai",
+    "class": "JinpaiSpider",
+    "urls": [
+      "http://000.hfr1107.top/live/py/文才.py"
+    ],
+    "aliases": [
+      "文才"
+    ]
   }
 ]

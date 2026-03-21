@@ -26,8 +26,8 @@ REGISTRY = [
     },
     {
         "name": "wencai",
-        "module": "spiders.jinpai",
-        "class": "JinpaiSpider",
+        "module": "spiders.wencai",
+        "class": "WencaiSpider",
         "urls": ["http://000.hfr1107.top/live/py/文才.py"],
         "aliases": ["文才"]
     },

@@ -24,7 +24,7 @@
   {
     "name": "wencai",
     "module": "spiders.wencai",
-    "class": wencaiSpider",
+    "class": WencaiSpider",
     "urls": [
       "http://000.hfr1107.top/live/py/文才.py"
     ],

@@ -24,4 +24,11 @@ REGISTRY = [
         "urls": ["http://000.hfr1107.top/live/py/金牌.py"],
         "aliases": ["金牌"]
     },
+    {
+        "name": "wencai",
+        "module": "spiders.jinpai",
+        "class": "JinpaiSpider",
+        "urls": ["http://000.hfr1107.top/live/py/文才.py"],
+        "aliases": ["文才"]
+    },
 ]

@@ -12,7 +12,7 @@ REGISTRY = [
         "name": "jianpian",
         "module": "spiders.jianpian",
         "class": "JianpianSpider",
-        "urls": ["http://000.hfr1107.top/live/py/荐片.py"],
+        "urls": ["https://000.hfr1107.top/live/py/荐片.py"],
         "aliases": ["荐片"],
     },
 
@@ -21,7 +21,7 @@ REGISTRY = [
         "name": "jinpai",
         "module": "spiders.mw_movie",
         "class": "MwMovieSpider",
-        "urls": ["http://000.hfr1107.top/live/py/金牌.py"],
+        "urls": ["https://000.hfr1107.top/live/py/金牌.py"],
         "aliases": ["金牌"],
         "ext": {
             "site": "https://m.sdzhgt.com",
@@ -34,11 +34,8 @@ REGISTRY = [
         "name": "wencai",
         "module": "spiders.mw_movie",
         "class": "MwMovieSpider",
-        "urls": [
-            "https://7337.kstore.vip/py/文才.py",
-            "https://7337.kstore.vip/py/文采.py",
-            "http://000.hfr1107.top/live/py/文才.py",
-            "http://000.hfr1107.top/live/py/文采.py"
+        "urls": [          "https://000.hfr1107.top/live/py/文才.py",
+            "https://000.hfr1107.top/live/py/文采.py"
         ],
         "aliases": ["文才", "文采"],
         "ext": {

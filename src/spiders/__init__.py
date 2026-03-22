@@ -12,7 +12,7 @@ REGISTRY = [
         "name": "jianpian",
         "module": "spiders.jianpian",
         "class": "JianpianSpider",
-        "urls": ["https://000.hfr1107.top/live/py/荐片.py"],
+        "urls": ["http://000.hfr1107.top/live/py/荐片.py"],
         "aliases": ["荐片"],
     },
 
@@ -21,7 +21,7 @@ REGISTRY = [
         "name": "jinpai",
         "module": "spiders.mw_movie",
         "class": "MwMovieSpider",
-        "urls": ["https://000.hfr1107.top/live/py/金牌.py"],
+        "urls": ["http://000.hfr1107.top/live/py/金牌.py"],
         "aliases": ["金牌"],
         "ext": {
             "site": "https://m.sdzhgt.com",
@@ -34,7 +34,12 @@ REGISTRY = [
         "name": "wencai",
         "module": "spiders.mw_movie",
         "class": "MwMovieSpider",
-        "urls": ["https://000.hfr1107.top/live/py/文才.py"],
+        "urls": [
+            "https://7337.kstore.vip/py/文才.py",
+            "https://7337.kstore.vip/py/文采.py",
+            "http://000.hfr1107.top/live/py/文才.py",
+            "http://000.hfr1107.top/live/py/文采.py"
+        ],
         "aliases": ["文才", "文采"],
         "ext": {
             "site": "https://m.hkybqufgh.com,https://m.sizhengxt.com,https://m.9zhoukj.com,https://m.jiabaide.cn",
@@ -54,16 +59,4 @@ REGISTRY = [
     #         "play_from": "新站线路"
     #     }
     # },
-
-# 在 __init__.py 的 REGISTRY 添加:
-{
-    "name": "任意英文名",
-    "module": "spiders.mw_movie",
-    "class": "MwMovieSpider",
-    "urls": ["http://原始py的URL"],
-    "aliases" ["中文别名"],
-    "ext": {
-        "site": "https://域名1,https://域名2",
-       "play_from": "线路名"
-    },
 ]

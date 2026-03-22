@@ -4,7 +4,7 @@
     "module": "spiders.jianpian",
     "class": "JianpianSpider",
     "urls": [
-      "http://000.hfr1107.top/live/py/荐片.py"
+      "https://000.hfr1107.top/live/py/荐片.py"
     ],
     "aliases": [
       "荐片"
@@ -15,7 +15,7 @@
     "module": "spiders.jinpai",
     "class": "JinpaiSpider",
     "urls": [
-      "http://000.hfr1107.top/live/py/金牌.py"
+      "https://000.hfr1107.top/live/py/金牌.py"
     ],
     "aliases": [
       "金牌"
@@ -26,7 +26,7 @@
     "module": "spiders.wencai",
     "class": WencaiSpider",
     "urls": [
-      "http://000.hfr1107.top/live/py/文才.py"
+      "https://000.hfr1107.top/live/py/文才.py"
     ],
     "aliases": [
       "文才"

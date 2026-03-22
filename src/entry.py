@@ -5,7 +5,7 @@ import time
 from urllib.parse import quote, unquote
 
 # ================================================================
-#  通用工具函数
+#  通用工具函数（spider 模块通过 import entry 使用）
 # ================================================================
 
 def build_url(base, params=None):
@@ -70,83 +70,61 @@ def json_response(data, status=200):
     return Response.new(body, status=status, headers=h)
 
 
-def _timestamp_ms():
-    return str(int(time.time() * 1000))
-
-
 # ================================================================
 #  Spider 注册表（自动发现）
 # ================================================================
 
-SPIDERS = {}          # name -> spider instance
-URL_TO_NAME = {}      # remote .py url -> name
-ALIAS_TO_NAME = {}    # 中文别名 -> name
-_init_errors = []     # 记录加载失败信息
+SPIDERS = {}
+URL_TO_NAME = {}
+ALIAS_TO_NAME = {}
+_init_errors = []
 
 
-def _try_register(name, module_name, class_name, urls=None, aliases=None):
+def _try_register(entry_cfg):
     """尝试导入并注册一个 spider"""
-    global SPIDERS, URL_TO_NAME, ALIAS_TO_NAME
+    name = entry_cfg.get('name', '')
+    module_name = entry_cfg.get('module', '')
+    class_name = entry_cfg.get('class', '')
+    urls = entry_cfg.get('urls', [])
+    aliases = entry_cfg.get('aliases', [])
+    ext = entry_cfg.get('ext')
+
+    if not name or not module_name or not class_name:
+        return
+
     try:
         mod = __import__(module_name, fromlist=[class_name])
         cls = getattr(mod, class_name)
-        SPIDERS[name] = cls()
-        if urls:
-            for u in urls:
-                URL_TO_NAME[u] = name
-        if aliases:
-            for a in aliases:
-                ALIAS_TO_NAME[a] = name
+        # 支持传入 ext 配置
+        try:
+            instance = cls(ext=ext)
+        except TypeError:
+            instance = cls()
+        SPIDERS[name] = instance
+        for u in urls:
+            URL_TO_NAME[u] = name
+        for a in aliases:
+            ALIAS_TO_NAME[a] = name
     except Exception as e:
         _init_errors.append(f"{name}: {e}")
 
 
 def _auto_discover():
-    """
-    自动发现 spider 模块
-    约定：spiders 目录下每个 .py 文件导出一个 Spider 类
-    文件名即为 spider name
-    类名约定为 XxxSpider（如 jianpian.py → JianpianSpider）
-    
-    同时尝试加载远程 JSON 配置中的映射
-    """
-    # 已知 spider 列表 — 这里用 try/except 逐个尝试
-    # 每个 spider 文件需要在模块中定义:
-    #   SPIDER_NAME = "xxx"
-    #   SPIDER_CLASS = XxxSpider  (或类名)
-    #   SPIDER_URLS = [...]       (可选)
-    #   SPIDER_ALIASES = [...]    (可选)
-    
-    known_modules = []
-    
-    # 尝试导入 spiders 目录下的模块
-    # CF Workers 会把 spiders/xxx.py 作为 spiders.xxx 加载
+    """从 spiders/__init__.py 的 REGISTRY 自动加载"""
     try:
-        import spiders as _sp_pkg
-        # 如果 spiders/__init__.py 中定义了 REGISTRY
-        if hasattr(_sp_pkg, 'REGISTRY'):
-            for entry in _sp_pkg.REGISTRY:
-                known_modules.append(entry)
-    except Exception:
-        pass
-    
-    # 注册所有发现的模块
-    for entry in known_modules:
-        _try_register(
-            entry.get('name', ''),
-            entry.get('module', ''),
-            entry.get('class', ''),
-            entry.get('urls'),
-            entry.get('aliases')
-        )
+        import spiders as _sp
+        if hasattr(_sp, 'REGISTRY'):
+            for entry_cfg in _sp.REGISTRY:
+                _try_register(entry_cfg)
+    except Exception as e:
+        _init_errors.append(f"auto_discover: {e}")
 
 
-# 启动时执行自动发现
 _auto_discover()
 
 
 # ================================================================
-#  远程 JSON 配置（运行时更新 URL_TO_NAME）
+#  远程 JSON 配置
 # ================================================================
 
 _json_cache = {"data": None, "ts": 0}
@@ -179,21 +157,16 @@ async def _load_json_config():
 # ================================================================
 
 def _resolve_spider_name(path, url_obj):
-    """从路径或 ?url= 参数解析 spider 名称"""
-    
-    # 方式1: ?url=http://xxx/荐片.py
+    # ?url= 参数方式
     url_param = url_obj.searchParams.get("url")
     if url_param:
         url_clean = unquote(url_param).rstrip('&').rstrip('?')
-        # 精确匹配
         name = URL_TO_NAME.get(url_clean)
         if name:
             return name
-        # 模糊匹配
         for reg_url, n in URL_TO_NAME.items():
             if url_clean in reg_url or reg_url in url_clean:
                 return n
-        # 从 URL 提取文件名尝试匹配
         fn = url_clean.rstrip('/').split('/')[-1]
         fn_base = fn[:-3] if fn.endswith('.py') else fn
         if fn_base in SPIDERS:
@@ -202,7 +175,7 @@ def _resolve_spider_name(path, url_obj):
             return ALIAS_TO_NAME[fn_base]
         return None
 
-    # 方式2: /jianpian 或 /荐片.py
+    # 路径方式
     clean_path = path.strip('/')
     if not clean_path or clean_path in ('debug', 'list'):
         return None
@@ -210,15 +183,11 @@ def _resolve_spider_name(path, url_obj):
     first_segment = clean_path.split('/')[0]
     base = first_segment[:-3] if first_segment.endswith('.py') else first_segment
 
-    # 直接匹配 spider name
     if base in SPIDERS:
         return base
-    
-    # 通过别名匹配
     if base in ALIAS_TO_NAME:
         return ALIAS_TO_NAME[base]
 
-    # 通过 URL_TO_NAME 文件名匹配
     for url, name in URL_TO_NAME.items():
         fn = url.rstrip('/').split('/')[-1]
         fn_base = fn[:-3] if fn.endswith('.py') else fn
@@ -233,18 +202,18 @@ def _resolve_spider_name(path, url_obj):
 # ================================================================
 
 async def _handle_spider(spider, url_obj):
-    ac     = url_obj.searchParams.get("ac")
-    t      = url_obj.searchParams.get("t")
-    tid    = url_obj.searchParams.get("tid")
-    pg     = url_obj.searchParams.get("pg")
-    ext    = url_obj.searchParams.get("ext")
+    ac       = url_obj.searchParams.get("ac")
+    t        = url_obj.searchParams.get("t")
+    tid      = url_obj.searchParams.get("tid")
+    pg       = url_obj.searchParams.get("pg")
+    ext      = url_obj.searchParams.get("ext")
     extend_p = url_obj.searchParams.get("extend")
-    ids    = url_obj.searchParams.get("ids")
-    flag   = url_obj.searchParams.get("flag")
-    play   = url_obj.searchParams.get("play")
-    wd     = url_obj.searchParams.get("wd")
-    quick  = url_obj.searchParams.get("quick")
-    f_val  = url_obj.searchParams.get("filter")
+    ids      = url_obj.searchParams.get("ids")
+    flag     = url_obj.searchParams.get("flag")
+    play     = url_obj.searchParams.get("play")
+    wd       = url_obj.searchParams.get("wd")
+    quick    = url_obj.searchParams.get("quick")
+    f_val    = url_obj.searchParams.get("filter")
 
     # 搜索
     if wd is not None and wd != "":
@@ -282,8 +251,16 @@ async def _handle_spider(spider, url_obj):
         result = await spider.homeVideoContent()
         return json_response(result)
 
-    # 首页
-    result = spider.homeContent(True)
+    # 首页 — homeContent 可能是同步或异步
+    if hasattr(spider.homeContent, '__call__'):
+        import asyncio
+        if asyncio.iscoroutinefunction(spider.homeContent):
+            result = await spider.homeContent(True)
+        else:
+            result = spider.homeContent(True)
+    else:
+        result = spider.homeContent(True)
+
     try:
         hv = await spider.homeVideoContent()
         result['list'] = hv.get('list', [])
@@ -300,20 +277,18 @@ async def on_fetch(request, env):
     url = URL.new(request.url)
     path = url.pathname
 
-    # OPTIONS
     if request.method == "OPTIONS":
         h = Headers.new()
         h.set("Access-Control-Allow-Origin", "*")
         h.set("Access-Control-Allow-Methods", "GET, OPTIONS")
         return Response.new("", status=204, headers=h)
 
-    # /debug
     if path == "/debug" or path.endswith("/debug"):
         info = {
             "worker_alive": True,
             "registered_spiders": list(SPIDERS.keys()),
-            "url_to_name": {k: v for k, v in URL_TO_NAME.items()},
-            "alias_to_name": {k: v for k, v in ALIAS_TO_NAME.items()},
+            "url_to_name": dict(URL_TO_NAME),
+            "alias_to_name": dict(ALIAS_TO_NAME),
             "init_errors": _init_errors,
         }
         try:
@@ -323,7 +298,6 @@ async def on_fetch(request, env):
             info["json_config_error"] = str(e)
         return json_response(info)
 
-    # /list
     if path == "/list":
         config = await _load_json_config()
         return json_response({
@@ -331,35 +305,25 @@ async def on_fetch(request, env):
             "json_config": config
         })
 
-    # 加载远程 JSON 配置
     await _load_json_config()
 
     try:
         spider_name = _resolve_spider_name(path, url)
-
         if spider_name and spider_name in SPIDERS:
             return await _handle_spider(SPIDERS[spider_name], url)
 
-        # 未匹配
         if not path or path == '/':
-            url_param = url.searchParams.get("url")
-            if url_param:
-                return json_response({
-                    "error": "未找到匹配的spider",
-                    "url_param": unquote(url_param),
-                    "registered": list(SPIDERS.keys()),
-                }, 404)
+            url_param = url_obj.searchParams.get("url") if hasattr(url, 'searchParams') else None
             return json_response({
                 "message": "TVBox Spider Proxy",
                 "spiders": list(SPIDERS.keys()),
                 "usage": [
-                    "/<spider_name>?filter=true",
-                    "/<spider_name>?t=1&ac=detail&pg=1&ext=e30%3D",
-                    "/<spider_name>?ac=detail&ids=123",
-                    "/<spider_name>?wd=关键词",
-                    "?url=http://xxx/xxx.py&filter=true",
-                    "/debug",
-                    "/list"
+                    "/<name>?filter=true",
+                    "/<name>?t=1&ac=detail&pg=1&ext=e30%3D",
+                    "/<name>?ac=detail&ids=123",
+                    "/<name>?wd=关键词",
+                    "?url=http://xxx.py&filter=true",
+                    "/debug", "/list"
                 ]
             })
 

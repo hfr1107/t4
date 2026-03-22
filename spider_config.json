@@ -12,8 +12,8 @@
   },
   {
     "name": "jinpai",
-    "module": "spiders.jinpai",
-    "class": "JinpaiSpider",
+    "module": "spiders.mw_movie",
+    "class": "MwMovieSpider",
     "urls": [
       "https://000.hfr1107.top/live/py/金牌.py"
     ],
@@ -23,8 +23,8 @@
   },
   {
     "name": "wencai",
-    "module": "spiders.wencai",
-    "class": WencaiSpider",
+    "module": "spiders.mw_movie",
+    "class": "MwMovieSpider",
     "urls": [
       "https://000.hfr1107.top/live/py/文才.py"
     ],

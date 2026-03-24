@@ -7,6 +7,13 @@
 # ================================================================
 
 REGISTRY = [
+     {
+        "name": "yijie",
+        "module": "spiders.yijie",
+        "class": "YijieSpider",
+        "urls": ["http://000.hfr1107.top/live/py/yijie.py"],
+        "aliases": ["异界"],
+    },
     {
         "name": "jianpian",
         "module": "spiders.jianpian",
